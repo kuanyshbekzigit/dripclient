@@ -51,7 +51,7 @@ class AuthMiddleware(BaseMiddleware):
                         if not (is_start or is_contact):
                             from keyboards.user_kb import share_contact_keyboard
                             await event.answer(
-                                "⚠️ Ботты қолдану үшін алдымен телефон нөміріңізді жіберіңіз.",
+                                f"⚠️ DEBUG_BLOCK_MSG:\nphone_number evaluates to: '{db_user.phone_number}'\ntext was: '{getattr(event, 'text', '')}'\nБотты қолдану үшін алдымен телефон нөміріңізді жіберіңіз.",
                                 reply_markup=share_contact_keyboard()
                             )
                             return None
@@ -62,7 +62,7 @@ class AuthMiddleware(BaseMiddleware):
                         else:
                             from keyboards.user_kb import share_contact_keyboard
                             await event.message.answer(
-                                "⚠️ Ботты қолдану үшін алдымен телефон нөміріңізді жіберіңіз.",
+                                f"⚠️ DEBUG_BLOCK_CB:\nphone_number evaluates to: '{db_user.phone_number}'\nБотты қолдану үшін алдымен телефон нөміріңізді жіберіңіз.",
                                 reply_markup=share_contact_keyboard()
                             )
                             await event.answer()
