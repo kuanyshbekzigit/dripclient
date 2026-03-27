@@ -5,7 +5,7 @@ from sqlalchemy import select
 from database.models import User
 from database.engine import async_session
 from database.github_sync import save_database
-from keyboards.user_kb import main_menu_keyboard, share_contact_keyboard, language_keyboard
+from keyboards.user_kb import main_inline_keyboard, share_contact_keyboard, back_to_main_keyboard
 from locales import get_text, get_all_translations
 from middlewares.auth import verified_users_cache
 from config import config
@@ -31,10 +31,10 @@ async def cmd_start(message: Message, db_user: User, db_session):
                 asyncio.create_task(save_database())
 
     if not db_user.phone_number:
-        # Prompt for language first if not set
         await message.answer(
-            get_text(db_user.language, "select_lang"),
-            reply_markup=language_keyboard()
+            get_text("en", "welcome"),
+            parse_mode="HTML",
+            reply_markup=share_contact_keyboard("en")
         )
         return
 @router.message(F.text == "/debug_me")
@@ -67,27 +67,6 @@ async def handle_secret_password(message: Message, db_user: User):
         else:
             await message.answer("ℹ️ Сіз онсыз да админсіз. /admin командасын басыңыз.")
 
-
-@router.callback_query(F.data.startswith("lang_"))
-async def set_language(callback: CallbackQuery, db_user: User, db_session):
-    lang_code = callback.data.split("_")[1]
-    db_user.language = lang_code
-    await db_session.commit()
-    
-    await callback.message.delete()
-    
-    if not db_user.phone_number:
-        # Instead of just callback.message.answer we ensure we send it properly
-        await callback.message.answer(
-            get_text(db_user.language, "welcome"),
-            parse_mode="HTML",
-            reply_markup=share_contact_keyboard(db_user.language)
-        )
-    else:
-        await callback.answer(get_text(db_user.language, "lang_changed"), show_alert=True)
-        await _show_dashboard(callback.message, db_user)
-        
-    await callback.answer()
 
 
 @router.message(F.contact)
@@ -128,7 +107,7 @@ async def handle_contact(message: Message, db_user: User, db_session, bot: Bot):
                 pass
 
 
-async def _show_dashboard(message: Message, db_user: User):
+async def _show_dashboard(event: Message | CallbackQuery, db_user: User):
     """Renders the Reseller Dashboard."""
     from datetime import datetime, timezone, timedelta
     tz = timezone(timedelta(hours=5))
@@ -142,11 +121,12 @@ async def _show_dashboard(message: Message, db_user: User):
     active_text = get_text(db_user.language, "status_active")
     time_text = get_text(db_user.language, "time")
 
+    user_obj = event.from_user
     text = (
         f"{title}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"👤 User: @{message.from_user.username or 'no_username'}\n"
-        f"🆔 ID: <code>{message.from_user.id}</code>\n\n"
+        f"👤 User: @{user_obj.username or 'no_username'}\n"
+        f"🆔 ID: <code>{user_obj.id}</code>\n\n"
         f"{stats}\n"
         f"   {bal_text}: <b>{db_user.balance:,.0f} ₸</b>\n"
         f"   {spent_text}: <b>{db_user.total_spent:,.0f} ₸</b>\n"
@@ -154,11 +134,22 @@ async def _show_dashboard(message: Message, db_user: User):
         f"{time_text}: {now}\n"
         f"━━━━━━━━━━━━━━━━━━━━"
     )
-    await message.answer(text, reply_markup=main_menu_keyboard(db_user.language), parse_mode="HTML")
+    
+    markup = main_inline_keyboard(db_user.language)
+    if isinstance(event, Message):
+        await event.answer(text, reply_markup=markup, parse_mode="HTML")
+    else:
+        await event.message.edit_text(text, reply_markup=markup, parse_mode="HTML")
 
 
-@router.message(F.text.in_(get_all_translations("btn_profile")))
-async def profile_handler(message: Message, db_user: User):
+@router.callback_query(F.data == "back_to_main")
+async def back_to_main_cb(callback: CallbackQuery, db_user: User):
+    await _show_dashboard(callback, db_user)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "menu_profile")
+async def profile_cb(callback: CallbackQuery, db_user: User):
     title = get_text(db_user.language, "profile_title")
     joined = get_text(db_user.language, "joined")
     bal_text = get_text(db_user.language, "balance")
@@ -168,18 +159,19 @@ async def profile_handler(message: Message, db_user: User):
         f"{title}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"🆔 ID: <code>{db_user.tg_id}</code>\n"
-        f"👤 Username: @{message.from_user.username or 'no_username'}\n"
+        f"👤 Username: @{callback.from_user.username or 'no_username'}\n"
         f"📱 Phone: <code>{db_user.phone_number or '—'}</code>\n\n"
         f"{bal_text}: <b>{db_user.balance:,.0f} ₸</b>\n"
         f"{spent_text}: <b>{db_user.total_spent:,.0f} ₸</b>\n"
         f"{joined}: {db_user.created_at.strftime('%d.%m.%Y')}"
     )
-    await message.answer(text, parse_mode="HTML")
+    await callback.message.edit_text(text, parse_mode="HTML", reply_markup=back_to_main_keyboard(db_user.language))
+    await callback.answer()
 
 
-@router.message(F.text.in_(get_all_translations("btn_referral")))
-async def referral_handler(message: Message, db_user: User):
-    bot_info = await message.bot.get_me()
+@router.callback_query(F.data == "menu_referral")
+async def referral_cb(callback: CallbackQuery, db_user: User):
+    bot_info = await callback.bot.get_me()
     ref_link = f"https://t.me/{bot_info.username}?start={db_user.tg_id}"
     
     bonus_text = ""
@@ -187,11 +179,12 @@ async def referral_handler(message: Message, db_user: User):
         bonus_text = get_text(db_user.language, "ref_bonus", bonus=db_user.referral_bonus)
         
     text = get_text(db_user.language, "ref_sys", link=ref_link, count=db_user.referral_count) + bonus_text
-    await message.answer(text, parse_mode="HTML")
+    await callback.message.edit_text(text, parse_mode="HTML", reply_markup=back_to_main_keyboard(db_user.language))
+    await callback.answer()
 
 
-@router.message(F.text.in_(get_all_translations("btn_links")))
-async def links_handler(message: Message, db_user: User):
+@router.callback_query(F.data == "menu_links")
+async def links_cb(callback: CallbackQuery, db_user: User):
     title = get_text(db_user.language, "links_title")
     text = (
         f"{title}\n"
@@ -201,11 +194,11 @@ async def links_handler(message: Message, db_user: User):
         f"📢 <a href='{config.telegram_channel}'>Telegram Channel</a>\n"
         f"💬 <a href='{config.contact_admin}'>Contact Admin</a>"
     )
-    await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
-
-@router.message(F.text.in_(get_all_translations("btn_settings")))
-async def settings_handler(message: Message, db_user: User):
-    await message.answer(
-        get_text(db_user.language, "select_lang"),
-        reply_markup=language_keyboard()
+    await callback.message.edit_text(
+        text, 
+        parse_mode="HTML", 
+        disable_web_page_preview=True,
+        reply_markup=back_to_main_keyboard(db_user.language)
     )
+    await callback.answer()
+

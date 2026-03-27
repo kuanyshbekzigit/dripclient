@@ -14,27 +14,33 @@ def share_contact_keyboard(lang: str = "kk") -> ReplyKeyboardMarkup:
         one_time_keyboard=True
     )
 
-def language_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="🇰🇿 Қазақша", callback_data="lang_kk")],
-            [InlineKeyboardButton(text="🇷🇺 Русский", callback_data="lang_ru")],
-            [InlineKeyboardButton(text="🇬🇧 English", callback_data="lang_en")]
-        ]
-    )
 
 # ─── USER KEYBOARDS ───────────────────────────────────────────────
 
-def main_menu_keyboard(lang: str = "kk") -> ReplyKeyboardMarkup:
-    """Main dashboard keyboard."""
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text=get_text(lang, "btn_products")), KeyboardButton(text=get_text(lang, "btn_topup"))],
-            [KeyboardButton(text=get_text(lang, "btn_keys")),  KeyboardButton(text=get_text(lang, "btn_referral"))],
-            [KeyboardButton(text=get_text(lang, "btn_profile")), KeyboardButton(text=get_text(lang, "btn_links"))],
-            [KeyboardButton(text=get_text(lang, "btn_settings"))]
-        ],
-        resize_keyboard=True
+def main_inline_keyboard(lang: str = "en") -> InlineKeyboardMarkup:
+    """Main dashboard inline keyboard with API 9.4 styles."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=get_text(lang, "btn_products"), callback_data="menu_products", **{"style": "primary"}),
+                InlineKeyboardButton(text=get_text(lang, "btn_topup"), callback_data="menu_topup", **{"style": "success"})
+            ],
+            [
+                InlineKeyboardButton(text=get_text(lang, "btn_keys"), callback_data="menu_keys", **{"style": "primary"}),
+                InlineKeyboardButton(text=get_text(lang, "btn_referral"), callback_data="menu_referral", **{"style": "primary"})
+            ],
+            [
+                InlineKeyboardButton(text=get_text(lang, "btn_profile"), callback_data="menu_profile", **{"style": "secondary"}),
+                InlineKeyboardButton(text=get_text(lang, "btn_links"), callback_data="menu_links", **{"style": "secondary"})
+            ]
+        ]
+    )
+
+def back_to_main_keyboard(lang: str = "en", text: str = "⬅️ Артқа / Back") -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text=text, callback_data="back_to_main", **{"style": "danger"})]
+        ]
     )
 
 
@@ -56,5 +62,8 @@ def products_keyboard(products, is_vip: bool = False, lang: str = "kk") -> Inlin
     
     if current_row:
         rows.append(current_row)
+        
+    # Add back button at the bottom
+    rows.append([InlineKeyboardButton(text="⬅️ Артқа / Back", callback_data="back_to_main", **{"style": "danger"})])
 
     return InlineKeyboardMarkup(inline_keyboard=rows)

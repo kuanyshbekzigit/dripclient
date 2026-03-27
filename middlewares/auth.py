@@ -59,22 +59,18 @@ class AuthMiddleware(BaseMiddleware):
                         if not (is_start or is_contact):
                             from keyboards.user_kb import share_contact_keyboard
                             await event.answer(
-                                f"⚠️ DEBUG_BLOCK_MSG:\nphone_number evaluates to: '{db_user.phone_number}'\ntext was: '{getattr(event, 'text', '')}'\nБотты қолдану үшін алдымен телефон нөміріңізді жіберіңіз.",
+                                "⚠️ Please share your contact to use the bot.",
                                 reply_markup=share_contact_keyboard()
                             )
                             return None
                     elif isinstance(event, CallbackQuery):
-                        if event.data and event.data.startswith("lang_"):
-                            # Allow language selection even without phone number
-                            pass
-                        else:
-                            from keyboards.user_kb import share_contact_keyboard
-                            await event.message.answer(
-                                f"⚠️ DEBUG_BLOCK_CB:\nphone_number evaluates to: '{db_user.phone_number}'\nБотты қолдану үшін алдымен телефон нөміріңізді жіберіңіз.",
-                                reply_markup=share_contact_keyboard()
-                            )
-                            await event.answer()
-                            return None
+                        from keyboards.user_kb import share_contact_keyboard
+                        await event.message.answer(
+                            "⚠️ Please share your contact to use the bot.",
+                            reply_markup=share_contact_keyboard()
+                        )
+                        await event.answer()
+                        return None
 
                 data['db_session'] = session
                 data['db_user'] = db_user

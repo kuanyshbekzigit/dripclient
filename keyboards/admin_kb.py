@@ -15,7 +15,7 @@ def admin_panel_keyboard() -> ReplyKeyboardMarkup:
             [KeyboardButton(text="🚫 Ban User"),            KeyboardButton(text="💰 Add Balance")],
             [KeyboardButton(text="👁 User Info"),           KeyboardButton(text="🔙 User Mode")],
             [KeyboardButton(text="➕ Тауар қосу"),          KeyboardButton(text="✏️ Баға өзгерту")],
-            [KeyboardButton(text="🗑 Тауар жою")],
+            [KeyboardButton(text="🗑 Тауар жою"),          KeyboardButton(text="📦 Қойма мен Сатылым")],
             [KeyboardButton(text="🎖 VIP код жасау"),        KeyboardButton(text="👑 VIP клиенттер")],
             [KeyboardButton(text="🚫 VIP алып тастау"),      KeyboardButton(text="📢 Хабарлама жіберу")],
         ],

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database.models import User, Payment
 from config import config
 from keyboards.admin_kb import approve_reject_keyboard
-from keyboards.user_kb import main_menu_keyboard
+from keyboards.user_kb import main_inline_keyboard
 from locales import get_text, get_all_translations
 
 router = Router()
@@ -80,7 +80,7 @@ async def payment_receipt_handler(
     await message.answer(
         get_text(db_user.language, "payment_sent"),
         parse_mode="HTML",
-        reply_markup=main_menu_keyboard(db_user.language)
+        reply_markup=main_inline_keyboard(db_user.language)
     )
 
     if not config.admin_ids:
