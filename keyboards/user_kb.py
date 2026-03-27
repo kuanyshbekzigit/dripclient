@@ -30,8 +30,8 @@ def main_inline_keyboard(lang: str = "en") -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text=get_text(lang, "btn_referral"), callback_data="menu_referral", **{"style": "primary"})
             ],
             [
-                InlineKeyboardButton(text=get_text(lang, "btn_profile"), callback_data="menu_profile", **{"style": "secondary"}),
-                InlineKeyboardButton(text=get_text(lang, "btn_links"), callback_data="menu_links", **{"style": "secondary"})
+                InlineKeyboardButton(text=get_text(lang, "btn_profile"), callback_data="menu_profile"),
+                InlineKeyboardButton(text=get_text(lang, "btn_links"), callback_data="menu_links")
             ]
         ]
     )
