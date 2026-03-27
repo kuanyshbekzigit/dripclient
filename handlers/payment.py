@@ -1,12 +1,12 @@
 from aiogram import Router, F, Bot
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.models import User, Payment
 from config import config
 from keyboards.admin_kb import approve_reject_keyboard
-from keyboards.user_kb import main_inline_keyboard
+from keyboards.user_kb import main_inline_keyboard, back_to_main_keyboard
 from locales import get_text, get_all_translations
 
 router = Router()
@@ -17,13 +17,15 @@ class PaymentState(StatesGroup):
     waiting_for_receipt = State()
 
 
-@router.message(F.text.in_(get_all_translations("btn_topup")))
-async def topup_handler(message: Message, state: FSMContext, db_user: User):
+@router.callback_query(F.data == "menu_topup")
+async def topup_cb_handler(callback: CallbackQuery, state: FSMContext, db_user: User):
     await state.set_state(PaymentState.waiting_for_amount)
-    await message.answer(
+    await callback.message.edit_text(
         get_text(db_user.language, "topup_title"),
-        parse_mode="HTML"
+        parse_mode="HTML",
+        reply_markup=back_to_main_keyboard(db_user.language)
     )
+    await callback.answer()
 
 
 @router.message(PaymentState.waiting_for_amount)
