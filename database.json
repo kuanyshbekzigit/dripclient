@@ -11,20 +11,28 @@
       "referred_by": null,
       "referral_count": 0,
       "referral_bonus": 0.0,
-      "created_at": "2026-03-28T11:56:17"
+      "created_at": "2026-03-28T11:59:28"
     }
   },
   "vip_codes": {},
   "keys": {},
   "purchases": {},
   "referrals": [],
-  "products": {},
+  "products": {
+    "1": {
+      "id": 1,
+      "name": "DRIP CLIENT 1-DAY",
+      "price": 399.0,
+      "vip_price": 200.0,
+      "description": "DRIP CLIENT 1-DAY лицензиясы"
+    }
+  },
   "_meta": {
     "total_users": 1,
     "total_vip_users": 0,
     "total_keys": 0,
     "total_purchases": 0,
     "total_referrals": 0,
-    "last_saved": "2026-03-28T11:57:30.070148Z"
+    "last_saved": "2026-03-28T12:00:42.219586Z"
   }
 }
