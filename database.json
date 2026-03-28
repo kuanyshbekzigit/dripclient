@@ -25,6 +25,19 @@
       "referral_count": 0,
       "referral_bonus": 0.0,
       "created_at": "2026-03-28T12:12:02"
+    },
+    "8454938102": {
+      "tg_id": 8454938102,
+      "username": "psixzs",
+      "phone_number": "77001797911",
+      "balance": 0.0,
+      "total_spent": 0.0,
+      "is_banned": false,
+      "is_vip": false,
+      "referred_by": null,
+      "referral_count": 0,
+      "referral_bonus": 0.0,
+      "created_at": "2026-03-28T12:13:00"
     }
   },
   "vip_codes": {},
@@ -57,11 +70,11 @@
     }
   },
   "_meta": {
-    "total_users": 2,
+    "total_users": 3,
     "total_vip_users": 0,
     "total_keys": 1,
     "total_purchases": 1,
     "total_referrals": 0,
-    "last_saved": "2026-03-28T12:12:04.591223Z"
+    "last_saved": "2026-03-28T12:13:03.208352Z"
   }
 }
