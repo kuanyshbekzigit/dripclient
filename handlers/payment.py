@@ -23,10 +23,12 @@ async def topup_cb_handler(callback: CallbackQuery, state: FSMContext, db_user: 
     await state.update_data(amount=0.0)
     
     text = (
-        "💳 <b>Бекітілген нөмірге қажетті соманы аударыңыз:</b>\n\n"
-        f"📞 Нөмір: <code>{config.kaspi_phone}</code>\n"
-        f"👤 Алушы: <b>{config.kaspi_receiver}</b>\n\n"
-        "<i>Төлем жасаған соң, чекті (түбіртекті) сурет немесе файл ретінде осында жіберіңіз:</i>"
+        "💳 <b>Please transfer the required amount to the approved Kaspi details:</b>\n"
+        "━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"<blockquote>🏦 <b>Kaspi Bank</b>\n"
+        f"📞 <code>{config.kaspi_phone}</code>\n"
+        f"👤 {config.kaspi_receiver} ✅</blockquote>\n\n"
+        "<i>📸 After payment, please send the receipt (photo or PDF) exactly here:</i> 👇"
     )
     
     await callback.message.edit_text(
