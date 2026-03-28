@@ -19,33 +19,22 @@ class PaymentState(StatesGroup):
 
 @router.callback_query(F.data == "menu_topup")
 async def topup_cb_handler(callback: CallbackQuery, state: FSMContext, db_user: User):
-    await state.set_state(PaymentState.waiting_for_amount)
+    await state.set_state(PaymentState.waiting_for_receipt)
+    await state.update_data(amount=0.0)
+    
+    text = (
+        "💳 <b>Бекітілген нөмірге қажетті соманы аударыңыз:</b>\n\n"
+        f"📞 Нөмір: <code>{config.kaspi_phone}</code>\n"
+        f"👤 Алушы: <b>{config.kaspi_receiver}</b>\n\n"
+        "<i>Төлем жасаған соң, чекті (түбіртекті) сурет немесе файл ретінде осында жіберіңіз:</i>"
+    )
+    
     await callback.message.edit_text(
-        get_text(db_user.language, "topup_title"),
+        text,
         parse_mode="HTML",
         reply_markup=back_to_main_keyboard(db_user.language)
     )
     await callback.answer()
-
-
-@router.message(PaymentState.waiting_for_amount)
-async def payment_amount_handler(message: Message, state: FSMContext, db_user: User):
-    if not message.text or not message.text.strip().isdigit():
-        await message.answer(get_text(db_user.language, "invalid_amount"))
-        return
-
-    amount = float(message.text.strip())
-    if amount <= 0:
-        await message.answer(get_text(db_user.language, "amount_zero"))
-        return
-
-    await state.update_data(amount=amount)
-    await state.set_state(PaymentState.waiting_for_receipt)
-
-    await message.answer(
-        get_text(db_user.language, "kaspi_pay", amount=amount, phone=config.kaspi_phone, receiver=config.kaspi_receiver),
-        parse_mode="HTML"
-    )
 
 
 @router.message(PaymentState.waiting_for_receipt, F.photo | F.document)
@@ -93,8 +82,8 @@ async def payment_receipt_handler(
         f"━━━━━━━━━━━━━━━━━━━━\n\n"
         f"👤 User: @{message.from_user.username or 'no_username'}\n"
         f"🆔 Telegram ID: <code>{db_user.tg_id}</code>\n"
-        f"💰 Сома: <b>{amount:,.0f} ₸</b>\n"
-        f"🔢 Төлем ID: #{payment.id}"
+        f"🔢 Төлем ID: #{payment.id}\n\n"
+        f"⚠️ <i>Түбіртекті тексеріп, сомасын енгізіңіз.</i>"
     )
 
     kb = approve_reject_keyboard(payment.id, db_user.tg_id)

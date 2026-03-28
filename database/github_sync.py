@@ -21,12 +21,12 @@ JSON schema (ALL data that must survive a server reset):
   "vip_codes": {
     "<code>": { "is_used", "used_by", "created_at" }
   },
-  "purchase_history": [
-    {
-      "id", "user_tg_id", "product_id", "product_name",
-      "key_value", "price", "timestamp"
-    }
-  ],
+  "keys": {
+    "<key_id>": { "product_id", "key_value", "is_used", "used_by", "created_at" }
+  },
+  "purchases": {
+    "<purchase_id>": { "user_tg_id", "product_id", "key_id", "price", "timestamp" }
+  },
   "referrals": [
     { "referee_tg_id", "referrer_tg_id", "joined_at" }
   ],
@@ -109,11 +109,8 @@ async def _dump_to_dict() -> dict:
         all_users     = (await session.execute(select(User))).scalars().all()
         all_products  = (await session.execute(select(Product))).scalars().all()
         all_vipcodes  = (await session.execute(select(VipCode))).scalars().all()
-        all_purchases = (await session.execute(
-            select(Purchase, Key, Product)
-            .join(Key, Purchase.key_id == Key.id)
-            .join(Product, Purchase.product_id == Product.id)
-        )).all()
+        all_keys      = (await session.execute(select(Key))).scalars().all()
+        all_purchases = (await session.execute(select(Purchase))).scalars().all()
 
         # ── 1. USERS (all fields including referral) ──────────────────────────
         users = {
@@ -147,19 +144,29 @@ async def _dump_to_dict() -> dict:
             for v in all_vipcodes
         }
 
-        # ── 3. PURCHASE HISTORY (with product name & key value) ───────────────
-        purchase_history = [
-            {
-                "id":           pu.id,
-                "user_tg_id":   pu.user_tg_id,
-                "product_id":   pu.product_id,
-                "product_name": product.name,
-                "key_value":    key.key_value,   # the actual key string
-                "price":        pu.price,
-                "timestamp":    pu.timestamp.isoformat() if pu.timestamp else None,
+        # ── 3. KEYS ───────────────────────────────────────────────────────────
+        keys = {
+            str(k.id): {
+                "product_id": k.product_id,
+                "key_value":  k.key_value,
+                "is_used":    k.is_used,
+                "used_by":    k.used_by,
+                "created_at": k.created_at.isoformat() if k.created_at else None,
             }
-            for pu, key, product in all_purchases
-        ]
+            for k in all_keys
+        }
+
+        # ── 3.5 PURCHASES ─────────────────────────────────────────────────────
+        purchases = {
+            str(pu.id): {
+                "user_tg_id": pu.user_tg_id,
+                "product_id": pu.product_id,
+                "key_id":     pu.key_id,
+                "price":      pu.price,
+                "timestamp":  pu.timestamp.isoformat() if pu.timestamp else None,
+            }
+            for pu in all_purchases
+        }
 
         # ── 4. REFERRALS (denormalised for fast restore) ──────────────────────
         referrals = [
@@ -186,14 +193,16 @@ async def _dump_to_dict() -> dict:
     return {
         "users":            users,
         "vip_codes":        vip_codes,
-        "purchase_history": purchase_history,
+        "keys":             keys,
+        "purchases":        purchases,
         "referrals":        referrals,
         "products":         products,
         # Metadata
         "_meta": {
             "total_users":     len(users),
             "total_vip_users": sum(1 for u in users.values() if u["is_vip"]),
-            "total_purchases": len(purchase_history),
+            "total_keys":      len(keys),
+            "total_purchases": len(purchases),
             "total_referrals": len(referrals),
             "last_saved":      datetime.utcnow().isoformat() + "Z",
         },
@@ -263,13 +272,45 @@ async def _load_from_dict(data: dict) -> None:
                 existing.is_used = v.get("is_used", existing.is_used)
                 existing.used_by = v.get("used_by", existing.used_by)
 
+        # --- Keys ---
+        for kid_str, k in data.get("keys", {}).items():
+            kid = int(kid_str)
+            existing = await session.get(Key, kid)
+            if not existing:
+                session.add(Key(
+                    id=kid,
+                    product_id=k["product_id"],
+                    key_value=k["key_value"],
+                    is_used=k.get("is_used", False),
+                    used_by=k.get("used_by"),
+                ))
+            else:
+                existing.product_id = k["product_id"]
+                existing.key_value  = k["key_value"]
+                existing.is_used    = k.get("is_used", existing.is_used)
+                existing.used_by    = k.get("used_by", existing.used_by)
+
+        # --- Purchases ---
+        for pid_str, p in data.get("purchases", {}).items():
+            pid = int(pid_str)
+            existing = await session.get(Purchase, pid)
+            if not existing:
+                session.add(Purchase(
+                    id=pid,
+                    user_tg_id=p["user_tg_id"],
+                    product_id=p["product_id"],
+                    key_id=p["key_id"],
+                    price=p.get("price", 0.0),
+                ))
+
         await session.commit()
 
     log.info(
-        "GitHub sync: loaded — %d users, %d vip_codes, %d referrals.",
+        "GitHub sync: loaded — %d products, %d users, %d keys, %d purchases.",
+        len(data.get("products", {})),
         len(data.get("users", {})),
-        len(data.get("vip_codes", {})),
-        len(data.get("referrals", [])),
+        len(data.get("keys", {})),
+        len(data.get("purchases", {})),
     )
 
 
@@ -314,13 +355,11 @@ async def save_database() -> None:
         ts      = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
         ok      = await _push_file(content, sha, f"bot: auto-sync {ts}")
         if ok:
-            users = data["_meta"]["total_users"]
-            vips  = data["_meta"]["total_vip_users"]
-            purch = data["_meta"]["total_purchases"]
-            refs  = data["_meta"]["total_referrals"]
             log.info(
-                "GitHub sync: pushed OK — users=%d, vip=%d, purchases=%d, referrals=%d",
-                users, vips, purch, refs,
+                "GitHub sync: pushed OK — users=%d, keys=%d, purchases=%d",
+                data["_meta"]["total_users"],
+                data["_meta"]["total_keys"],
+                data["_meta"]["total_purchases"]
             )
     except Exception as exc:
         log.error("GitHub sync: save failed: %s", exc, exc_info=True)

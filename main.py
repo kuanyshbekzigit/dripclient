@@ -15,11 +15,25 @@ from handlers import common, user, payment
 from handlers import vip
 from handlers.admin import panel, moderation, keys, users, products, vip_admin, broadcast
 
+async def keep_alive():
+    import aiohttp
+    while True:
+        await asyncio.sleep(14 * 60)  # 14 minutes
+        url = os.environ.get("RENDER_EXTERNAL_URL") or config.webhook_url
+        if url:
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(f"{url}/healthz") as resp:
+                        logging.info(f"Keep-alive ping sent to {url}/healthz, status: {resp.status}")
+            except Exception as e:
+                logging.error(f"Keep-alive ping failed: {e}")
+
 async def on_startup(bot: Bot):
     actual_url = os.environ.get("RENDER_EXTERNAL_URL") or config.webhook_url
     if config.use_webhook and actual_url:
         await bot.set_webhook(f"{actual_url}{config.webhook_path}", drop_pending_updates=True)
         logging.info(f"Webhook set to {actual_url}{config.webhook_path}")
+    asyncio.create_task(keep_alive())
 
 async def on_shutdown(bot: Bot):
     logging.info("Shutting down...")
