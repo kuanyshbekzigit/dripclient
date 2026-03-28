@@ -4,25 +4,27 @@
       "tg_id": 7793529888,
       "username": "Joy_designer",
       "phone_number": "+77785625741",
-      "balance": 0.0,
+      "balance": 5000.0,
       "total_spent": 0.0,
       "is_banned": false,
       "is_vip": false,
       "referred_by": null,
       "referral_count": 0,
       "referral_bonus": 0.0,
-      "created_at": "2026-03-28T11:27:28"
+      "created_at": "2026-03-28T11:56:17"
     }
   },
   "vip_codes": {},
-  "purchase_history": [],
+  "keys": {},
+  "purchases": {},
   "referrals": [],
   "products": {},
   "_meta": {
     "total_users": 1,
     "total_vip_users": 0,
+    "total_keys": 0,
     "total_purchases": 0,
     "total_referrals": 0,
-    "last_saved": "2026-03-28T11:27:30.647339Z"
+    "last_saved": "2026-03-28T11:57:30.070148Z"
   }
 }
