@@ -90,7 +90,7 @@
     "1": {
       "id": 1,
       "name": "DRIP CLIENT 1-DAY",
-      "price": 399.0,
+      "price": 500.0,
       "vip_price": 200.0,
       "description": "DRIP CLIENT 1-DAY лицензиясы"
     }
@@ -101,6 +101,6 @@
     "total_keys": 1,
     "total_purchases": 1,
     "total_referrals": 0,
-    "last_saved": "2026-03-28T12:51:28.086694Z"
+    "last_saved": "2026-03-28T12:52:16.057911Z"
   }
 }
