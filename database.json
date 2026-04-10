@@ -113,7 +113,7 @@
       "is_banned": false,
       "is_vip": false,
       "referred_by": null,
-      "referral_count": 0,
+      "referral_count": 1,
       "referral_bonus": 0.0,
       "created_at": "2026-04-09T10:07:55"
     },
@@ -541,7 +541,7 @@
       "total_spent": 0.0,
       "is_banned": false,
       "is_vip": false,
-      "referred_by": null,
+      "referred_by": 6397267874,
       "referral_count": 0,
       "referral_bonus": 0.0,
       "created_at": "2026-04-09T10:07:56"
@@ -1052,6 +1052,19 @@
       "referral_count": 0,
       "referral_bonus": 0.0,
       "created_at": "2026-04-09T10:07:56"
+    },
+    "8197745843": {
+      "tg_id": 8197745843,
+      "username": "VenokZx",
+      "phone_number": null,
+      "balance": 0.0,
+      "total_spent": 0.0,
+      "is_banned": false,
+      "is_vip": false,
+      "referred_by": null,
+      "referral_count": 0,
+      "referral_bonus": 0.0,
+      "created_at": "2026-04-09T18:42:37"
     }
   },
   "vip_codes": {
@@ -1126,6 +1139,11 @@
   },
   "referrals": [
     {
+      "referee_tg_id": 8477594819,
+      "referrer_tg_id": 6397267874,
+      "joined_at": "2026-04-09T10:07:56"
+    },
+    {
       "referee_tg_id": 7624177475,
       "referrer_tg_id": 8008674167,
       "joined_at": "2026-04-09T10:07:56"
@@ -1141,11 +1159,11 @@
     }
   },
   "_meta": {
-    "total_users": 81,
+    "total_users": 82,
     "total_vip_users": 1,
     "total_keys": 1,
     "total_purchases": 1,
-    "total_referrals": 1,
-    "last_saved": "2026-04-09T10:08:00.952108Z"
+    "total_referrals": 2,
+    "last_saved": "2026-04-10T01:34:56.254759Z"
   }
 }
