@@ -2612,6 +2612,19 @@
       "referral_count": 0,
       "referral_bonus": 0.0,
       "created_at": "2026-10-15T11:34:38"
+    },
+    "8763153254": {
+      "tg_id": 8763153254,
+      "username": null,
+      "phone_number": "60142127562",
+      "balance": 0.0,
+      "total_spent": 0.0,
+      "is_banned": false,
+      "is_vip": false,
+      "referred_by": null,
+      "referral_count": 0,
+      "referral_bonus": 0.0,
+      "created_at": "2026-10-17T09:59:04"
     }
   },
   "vip_codes": {
@@ -2711,11 +2724,11 @@
     }
   },
   "_meta": {
-    "total_users": 201,
+    "total_users": 202,
     "total_vip_users": 1,
     "total_keys": 1,
     "total_purchases": 1,
     "total_referrals": 3,
-    "last_saved": "2026-10-15T11:34:51.788014Z"
+    "last_saved": "2026-10-17T09:59:09.483022Z"
   }
 }
